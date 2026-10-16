@@ -10,56 +10,57 @@
 
 ## 🎯 What is this?
 
-**StealthDefense** is a lightweight, Java-based honeypot that:
-- 🕵️ Detects port scanners & bots
-- 🍯 Traps attackers in a tarpit
-- 🚫 Auto-blacklists malicious IPs
-- 📊 Logs to CSV & JSON
+StealthDefense is a lightweight Java honeypot designed to:
+- Detect port scanners and automated bots
+- Trap attackers in a tarpit
+- Auto-blacklist malicious IPs
+- Log activity to CSV and JSON
 
-**Zero external dependencies.** Pure Java Standard Library.
+Zero external dependencies — pure Java Standard Library.
 
 ---
 
 ## 🚀 Quick Start
+
+Clone, compile, and run:
 
 ```bash
 git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
 cd StealthDefense
 javac StealthDefense.java
 java StealthDefense --i-own-this-network
+```
 
-Flag Description
---i-own-this-network REQUIRED — Confirm ownership
---ports <list> Ports to listen
---threshold <n> Ports before blacklist
---window <ms> Time window
---delay <ms> Tarpit delay per byte
---max-duration <ms> Max tarpit duration
---max-tarpit <n> Max tarpit threads
---block-cmd <cmd> Firewall command (%IP% = target)
+Required flag:
+- --i-own-this-network — Confirm you own the target network (REQUIRED)
 
-🧪 Examples
+Available options:
+- --ports <list>         Comma-separated ports to listen on (e.g., 22,80,8080)
+- --threshold <n>        Number of distinct ports accessed before blacklisting
+- --window <ms>          Time window in milliseconds for threshold counting
+- --delay <ms>           Tarpit delay per byte sent back to the client
+- --max-duration <ms>    Maximum duration for a single tarpit session
+- --max-tarpit <n>       Maximum number of concurrent tarpit threads
+- --block-cmd <cmd>      Firewall command to run when blocking an IP (use %IP% placeholder)
+
+Examples:
 
 Basic:
-
 ```bash
 java StealthDefense --i-own-this-network
 ```
 
 Custom ports & threshold:
-
 ```bash
 java StealthDefense --i-own-this-network --ports 80,443,8080 --threshold 3
 ```
 
-With auto-block (root only):
-
+With auto-block (requires root):
 ```bash
 java StealthDefense --i-own-this-network --block-cmd "iptables -A INPUT -s %IP% -j DROP"
 ```
 
 Check logs:
-
 ```bash
 cat stealth_log.csv
 cat stealth_log.json
@@ -67,36 +68,42 @@ cat stealth_log.json
 
 ---
 
-⚠️ Disclaimer
+## ⚙️ How it works (high level)
 
-USE ONLY ON NETWORKS YOU OWN.
-Unauthorized use may be illegal. This tool is for defensive purposes only.
-
----
-
-🤖 Built With AI Collaboration
-
-Role Contributor
-💡 Idea & Concept Qwen 3.7 Plus
-🏗️ Architecture & Core Logic Me (Human)
-🐞 Debugging & Code Fixes DeepSeek V4.1 Pro
-📝 README & Docs DeepSeek + Me
-
-I didn't write every line myself. I used AI as a partner, not a replacement.
-The idea, architecture, and final quality control are mine.
-If you think that's "cheating", that's your problem. I'm proud of what I built. 🗿
+- Listens on configured ports.
+- Tracks incoming connection patterns per source IP.
+- If an IP scans multiple ports within the configured window and exceeds the threshold, the IP is tar-pitted and optionally blocked.
+- Events are recorded to CSV and JSON for analysis.
 
 ---
 
-📜 License
+## ⚠️ Disclaimer
+
+Use only on networks you own or are authorized to test. Unauthorized use may be illegal. This tool is for defensive and research purposes only.
+
+---
+
+## 🤖 Built With AI Collaboration
+
+Role | Contributor
+---|---
+Idea & Concept | Qwen 3.7 Plus
+Architecture & Core Logic | Aleksander (human)
+Debugging & Code Fixes | DeepSeek V4.1 Pro
+README & Docs | DeepSeek, Aleksander, GitHub Copilot
+
+Note: AI tools were used as assistants. Final design and quality control were performed by the human author.
+
+---
+
+## 📜 License
 
 GPL-3.0 — see LICENSE
 
 ---
 
-👤 Author
+## 👤 Author
 
 Aleksander (@aleksandergrambelik-png)
 
 Built with ❤️ and too much coffee, from a phone. 📱☕
-
