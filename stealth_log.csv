@@ -1,0 +1,10 @@
+timestamp,event,ip,port,details
+2026-10-16 21:55:42,CONN,127.0.0.1,8080,"New connection"
+2026-10-16 21:55:42,BOT,127.0.0.1,8080,"Bot signature detected"
+2026-10-16 21:55:42,TARPIT,127.0.0.1,8080,"Tarpit engaged"
+2026-10-16 21:58:00,CONN,127.0.0.1,8080,"New connection"
+2026-10-16 21:58:00,TARPIT,127.0.0.1,8080,"Tarpit engaged"
+2026-10-16 22:00:33,CONN,127.0.0.1,8080,"New connection"
+2026-10-16 22:00:33,TARPIT,127.0.0.1,8080,"Tarpit engaged"
+2026-10-16 22:05:12,CONN,192.168.1.4,8080,"New connection"
+2026-10-16 22:06:49,CONN,192.168.1.4,8080,"New connection"
