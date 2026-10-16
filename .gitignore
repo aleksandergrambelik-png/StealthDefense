@@ -1,0 +1,13 @@
+# Compiled files
+*.class
+
+# Backup files
+*.bak
+
+# Log files
+*.csv
+*.json
+
+# OS files
+.DS_Store
+Thumbs.db
