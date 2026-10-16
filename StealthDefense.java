@@ -205,7 +205,7 @@ public class StealthDefense {
 
     private static void printUsage() {
         System.out.println("╔══════════════════════════════════════════════════════╗");
-        System.out.println("║         StealthDefense v2.3 (Universal Edition)      ║");
+        System.out.println("║         StealthDefense v2.4 (Universal Edition)      ║");
         System.out.println("╚══════════════════════════════════════════════════════╝");
         System.out.println();
         System.out.println("USAGE:");
@@ -215,22 +215,18 @@ public class StealthDefense {
         System.out.println("  --i-own-this-network    Confirm you own the network");
         System.out.println();
         System.out.println("OPTIONS:");
-        System.out.println("  --ports <list>          Ports to listen (default: 2121,2222,3306,8080,33890)");
-        System.out.println("  --threshold <n>         Ports before blacklist (default: 2)");
-        System.out.println("  --window <ms>           Time window (default: 5000)");
-        System.out.println("  --delay <ms>            Tarpit delay per byte (default: 1500)");
-        System.out.println("  --max-duration <ms>     Max tarpit duration (default: 120000)");
-        System.out.println("  --max-tarpit <n>        Max tarpit threads (default: 50)");
+        System.out.println("  --ports <list>          Ports to listen");
+        System.out.println("  --threshold <n>         Ports before blacklist");
+        System.out.println("  --window <ms>           Time window");
+        System.out.println("  --delay <ms>            Tarpit delay per byte");
+        System.out.println("  --max-duration <ms>     Max tarpit duration");
+        System.out.println("  --max-tarpit <n>        Max tarpit threads");
         System.out.println("  --block-cmd <cmd>       Firewall command (%IP% = target)");
         System.out.println();
         System.out.println("OUTPUT:");
-        System.out.println("  - stealth_log.csv       Log dalam format CSV");
-        System.out.println("  - stealth_log.json      Log dalam format JSON");
+        System.out.println("  - stealth_log.csv       Log in CSV format");
+        System.out.println("  - stealth_log.json      Log in JSON format");
         System.out.println();
-        System.out.println("EXAMPLES:");
-        System.out.println("  java StealthDefense --i-own-this-network");
-        System.out.println("  java StealthDefense --i-own-this-network --ports 80,443 --threshold 3");
-        System.out.println("  java StealthDefense --i-own-this-network --block-cmd \"iptables -A INPUT -s %IP% -j DROP\"");
     }
 
     // --- ENVIRONMENT DETECTION ---
@@ -268,12 +264,10 @@ public class StealthDefense {
 
     private static void printBanner() {
         System.out.println("╔══════════════════════════════════════════════════════╗");
-        System.out.println("║         StealthDefense v2.3 (Universal Edition)      ║");
+        System.out.println("║         StealthDefense v2.4 (Universal Edition)      ║");
         System.out.println("╠══════════════════════════════════════════════════════╣");
         System.out.println("║  Environment : " + padRight(ENV_MODE, 36) + "║");
         System.out.println("║  Ports       : " + padRight(Arrays.toString(PORTS), 36) + "║");
-        System.out.println("║  Threshold   : " + padRight(String.valueOf(THRESHOLD), 36) + "║");
-        System.out.println("║  Tarpit Max  : " + padRight(MAX_TARPIT_THREADS + " threads", 36) + "║");
         System.out.println("║  Telemetry   : " + padRight("DISABLED (local only)", 36) + "║");
         System.out.println("║  Log Output  : " + padRight("CSV + JSON", 36) + "║");
         System.out.println("╚══════════════════════════════════════════════════════╝");
