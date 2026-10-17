@@ -200,3 +200,11 @@ GPL-3.0 — see LICENSE
 Aleksander (@aleksandergrambelik-png)
 
 Built with ❤️ and too much coffee, from a phone. 📱☕
+## 📦 Version History
+
+| Version | Path | Features |
+|---------|------|----------|
+| **v2.5** (latest) | `v2.5/StealthDefense.java` | + Clickjacking Protection (X-Frame-Options + CSP) |
+| **v2.4** | `v2.4/StealthDefense.java` | Stable, no plugins |
+
+> The root `StealthDefense.java` is a copy of the latest version for easy compilation.
