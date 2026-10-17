@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 
 public class StealthDefense {
 
-    // --- KONFIGURASI DEFAULT ---
     private static int[] PORTS = {2121, 2222, 3306, 8080, 33890};
     private static int THRESHOLD = 2;
     private static long WINDOW_MS = 5000;
@@ -16,12 +15,10 @@ public class StealthDefense {
     private static int MAX_TARPIT_THREADS = 50;
     private static String BLOCK_CMD = "";
     
-    // --- LOG FILES ---
     private static final String CSV_FILE = "stealth_log.csv";
     private static final String JSON_FILE = "stealth_log.json";
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
-    // --- ANTI-BOT ---
     private static final long BOT_TIME_THRESHOLD_MS = 100;
     private static final String[] BAD_USER_AGENTS = {
         "python-requests", "curl", "wget", "masscan", "zgrab", 
@@ -29,7 +26,6 @@ public class StealthDefense {
         "java/", "okhttp", "axios", "postman"
     };
 
-    // --- STATE ---
     private static final AtomicLong cConn = new AtomicLong(0);
     private static final AtomicLong cTarpit = new AtomicLong(0);
     private static final AtomicLong cThreat = new AtomicLong(0);
@@ -39,10 +35,8 @@ public class StealthDefense {
     private static final Map<String, Set<Integer>> ipPorts = new ConcurrentHashMap<>();
     private static final Set<String> blacklist = ConcurrentHashMap.newKeySet();
     
-    // --- ENVIRONMENT DETECTION ---
     private static String ENV_MODE = "UNKNOWN";
     
-    // --- RANDOM DISTRO UNTUK BANNER ---
     private static final String[] MYSQL_DISTROS = {
         "ubuntu0.16.04.1", "ubuntu0.20.04.1", "ubuntu0.22.04.1", 
         "debian0.10.1", "debian0.11.1", "debian0.12.1", 
@@ -55,27 +49,19 @@ public class StealthDefense {
     private static final java.util.Random rand = new java.util.Random();
 
     public static void main(String[] args) {
-        // 1. PARSE ARGUMEN
         if (!parseArgs(args)) {
             printUsage();
             System.exit(1);
         }
 
-        // 2. INIT LOG FILES
         initLogFiles();
-
-        // 3. DETEKSI ENVIRONMENT
         detectEnvironment();
-
-        // 4. BANNER
         printBanner();
 
-        // 5. START LISTENERS
         for (int p : PORTS) {
             new Thread(() -> listen(p), "Listener-" + p).start();
         }
         
-        // 6. STATS THREAD
         new Thread(() -> {
             while (true) {
                 try {
@@ -88,7 +74,6 @@ public class StealthDefense {
             }
         }, "Stats").start();
 
-        // 7. CLEANUP THREAD
         new Thread(() -> {
             while (true) {
                 try {
@@ -102,7 +87,6 @@ public class StealthDefense {
         }, "Cleanup").start();
     }
 
-    // --- LOG INITIALIZATION ---
     private static void initLogFiles() {
         try {
             File csv = new File(CSV_FILE);
@@ -121,15 +105,12 @@ public class StealthDefense {
         }
     }
 
-    // --- LOGGING ---
     private static synchronized void logEvent(String event, String ip, int port, String details) {
         String timestamp = DATE_FORMAT.format(new Date());
         
-        // CSV Format
         String csvLine = String.format("%s,%s,%s,%d,\"%s\"\n", timestamp, event, ip, port, details);
         writeToFile(CSV_FILE, csvLine);
         
-        // JSON Format
         String jsonLine = String.format(
             "  {\"timestamp\":\"%s\",\"event\":\"%s\",\"ip\":\"%s\",\"port\":%d,\"details\":\"%s\"},\n",
             timestamp, event, ip, port, details.replace("\"", "'")
@@ -141,12 +122,9 @@ public class StealthDefense {
         try (FileWriter fw = new FileWriter(filename, true);
              BufferedWriter bw = new BufferedWriter(fw)) {
             bw.write(content);
-        } catch (Exception e) {
-            // Silent fail biar gak ganggu thread utama
-        }
+        } catch (Exception e) {}
     }
 
-    // --- ARGUMENT PARSER ---
     private static boolean parseArgs(String[] args) {
         if (args.length == 0) return false;
         
@@ -229,7 +207,6 @@ public class StealthDefense {
         System.out.println();
     }
 
-    // --- ENVIRONMENT DETECTION ---
     private static void detectEnvironment() {
         String os = System.getProperty("os.name").toLowerCase();
         String termux = System.getenv("TERMUX_VERSION");
@@ -278,7 +255,6 @@ public class StealthDefense {
         return String.format("%-" + n + "s", s);
     }
 
-    // --- CORE LOGIC ---
     private static void listen(int port) {
         try {
             ServerSocket ss = new ServerSocket(port);
@@ -297,7 +273,6 @@ public class StealthDefense {
             }
         } catch (Exception e) {
             System.err.println("[FATAL] Cannot bind port " + port + ": " + e.getMessage());
-            System.err.println("  Hint: Ports <1024 need root. Use --ports to change.");
         }
     }
 
@@ -312,7 +287,6 @@ public class StealthDefense {
         boolean isThreat = false;
         long now = System.currentTimeMillis();
         
-        // Anti-Bot Detection
         if (detectBot(s, port)) {
             isThreat = true;
             cBot.incrementAndGet();
@@ -324,7 +298,6 @@ public class StealthDefense {
             return;
         }
 
-        // Port Scan Detection
         ipPorts.putIfAbsent(ip, ConcurrentHashMap.newKeySet());
         ipFirstHit.putIfAbsent(ip, now);
         
@@ -345,9 +318,7 @@ public class StealthDefense {
             if (!BLOCK_CMD.isEmpty()) {
                 try { 
                     Runtime.getRuntime().exec(BLOCK_CMD.replace("%IP%", ip)); 
-                } catch (Exception e) {
-                    System.err.println("[ERROR] Block cmd failed: " + e.getMessage());
-                }
+                } catch (Exception e) {}
             }
         }
 
@@ -435,7 +406,6 @@ public class StealthDefense {
         }
     }
 
-    // --- METHOD GETBANNER (FIXED & RANDOMIZED) ---
     private static String getBanner(int p) {
         if (p == 2121) return "220 (vsFTPd 3.0.3)\r\n";
         
