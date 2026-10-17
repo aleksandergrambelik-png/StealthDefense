@@ -1,10 +1,10 @@
 # StealthDefense 🛡️
 
-> Minimalist Honeypot + Anti-Bot + Tarpit defense system for Termux, Proot, and PC.
-
 ![Java](https://img.shields.io/badge/Java-100%25-orange)
 ![Platform](https://img.shields.io/badge/Platform-Termux%20%7C%20Proot%20%7C%20PC-blue)
 ![License](https://img.shields.io/badge/License-GPL--3.0-green)
+
+> Minimalist Honeypot + Anti-Bot + Tarpit defense system for Termux, Proot, and PC.
 
 ---
 
@@ -34,94 +34,32 @@ java StealthDefense --i-own-this-network
 Required flag:
 - `--i-own-this-network` — Confirm you own or are authorized to test the target network (REQUIRED).
 
+Suggested defaults (if applicable):
+- ports=22,80,443
+- threshold=3
+- window=60000
+- delay=50
+- max-duration=300000
+- max-tarpit=10
+
 ---
 
 ## Options
 
 Flag | Description
 ---|---
---i-own-this-network | REQUIRED — Confirm ownership/authorization
---ports <list> | Comma-separated ports to listen on (e.g., `22,80,8080`)
---threshold <n> | Number of distinct ports accessed before blacklisting
---window <ms> | Time window (ms) for threshold counting
---delay <ms> | Tarpit delay per byte sent back to the client (ms)
---max-duration <ms> | Max duration for a single tarpit session (ms)
---max-tarpit <n> | Max concurrent tarpit threads
---block-cmd <cmd> | Firewall command to run when blocking an IP (use `%IP%` placeholder)
-
-Suggested defaults (if applicable): ports=22,80,443; threshold=3; window=60000; delay=50; max-duration=300000; max-tarpit=10.
+`--i-own-this-network` | REQUIRED — Confirm ownership/authorization
+`--ports <list>` | Comma-separated ports to listen on (e.g., `22,80,8080`)
+`--threshold <n>` | Number of distinct ports accessed before blacklisting
+`--window <ms>` | Time window (ms) for threshold counting
+`--delay <ms>` | Tarpit delay per byte sent back to the client (ms)
+`--max-duration <ms>` | Max duration for a single tarpit session (ms)
+`--max-tarpit <n>` | Max concurrent tarpit threads
+`--block-cmd <cmd>` | Firewall command to run when blocking an IP (use `%IP%` placeholder)
 
 ---
 
 ## Examples
-
-## 🔌 Plugins
-
-StealthDefense v2.5 // v2.6  includes built-in plugins that activate automatically.
-
-| Plugin | Status | Description |
-|--------|--------|-------------|
-| `clickjack_filter` | ✅ Active | Protects against Clickjacking attacks via HTTP headers + CSS injection. |
-| `barcode_guard` | ✅ Active | Filters malicious payloads (SQLi, XSS, LFI) using Regex pattern matching. |
-
-### How to Test Clickjacking Protection
-
-1. Run StealthDefense:
-   ```bash
-   java StealthDefense --i-own-this-network
-
-2. Check the HTTP headers:
-   ```bash
-   curl -I http://127.0.0.1:8080
-   ```
-   Expected output:
-   ```
-   X-Frame-Options: DENY
-   Content-Security-Policy: frame-ancestors 'none'
-   ```
-3. Visual test (open in browser):
-   Create an HTML file and open it:
-   ```html
-   <h1>Clickjacking Test</h1>
-   <iframe src="http://127.0.0.1:8080" width="600" height="400"></iframe>
-   ```
-   If the iframe is blank/invisible, the protection is working. 🛡️
-
-```
-### How to Test Barcode Guard (SQLi / XSS / LFI)
-
-1. Run StealthDefense (if not already running):
-   ```bash
-   java StealthDefense --i-own-this-network
-
-2. Test SQL Injection:
-   ```bash
-   curl "http://127.0.0.1:8080/?id=1'%20OR%20'1'='1"
-   ```
-   Expected log:
-   ```
-   [PAYLOAD] Malicious payload detected from 127.0.0.1
-   ```
-3. Test XSS (Cross-Site Scripting):
-   ```bash
-   curl "http://127.0.0.1:8080/?q=<script>alert('xss')</script>"
-   ```
-   Expected log:
-   ```
-   [PAYLOAD] Malicious payload detected from 127.0.0.1
-   ```
-4. Test LFI (Local File Inclusion):
-   ```bash
-   curl "http://127.0.0.1:8080/?file=../../etc/passwd"
-   ```
-   Expected log:
-   ```
-   [PAYLOAD] Malicious payload detected from 127.0.0.1
-   ```
-
-Note: Barcode Guard works by matching known attack patterns (Regex). If a payload bypasses the filter, it will still be caught by the Bot Detection (User-Agent + Timing) or Tarpit mechanism.
-
-```
 
 Basic:
 ```bash
@@ -145,9 +83,87 @@ java StealthDefense --i-own-this-network --block-cmd "nft add rule inet filter i
 ```
 
 Windows placeholder (requires admin & appropriate firewall command):
-```bash
+```powershell
 java StealthDefense --i-own-this-network --block-cmd "powershell -Command \"New-NetFirewallRule -RemoteAddress %IP% -Action Block -DisplayName 'StealthDefense'\""
 ```
+
+---
+
+## Plugins
+
+StealthDefense v2.6 includes built-in plugins that activate automatically.
+
+| Plugin | Status | Description |
+|--------|--------:|-------------|
+| `clickjack_filter` | ✅ Active | Protects against clickjacking via HTTP headers + CSS injection. |
+| `barcode_guard`   | ✅ Active | Filters malicious payloads (SQLi, XSS, LFI) using regex pattern matching. |
+
+### How to Test Clickjacking Protection
+
+1. Run StealthDefense:
+```bash
+java StealthDefense --i-own-this-network
+```
+
+2. Check the HTTP headers:
+```bash
+curl -I http://127.0.0.1:8080
+```
+Expected output includes:
+```
+X-Frame-Options: DENY
+Content-Security-Policy: frame-ancestors 'none'
+```
+
+3. Visual test (open in browser):
+
+Create an HTML file:
+```html
+<!doctype html>
+<html>
+  <body>
+    <h1>Clickjacking Test</h1>
+    <iframe src="http://127.0.0.1:8080" width="600" height="400"></iframe>
+  </body>
+</html>
+```
+If the iframe is blank/invisible, the protection is working.
+
+### How to Test Barcode Guard (SQLi / XSS / LFI)
+
+1. Run StealthDefense:
+```bash
+java StealthDefense --i-own-this-network
+```
+
+2. Test SQL Injection:
+```bash
+curl "http://127.0.0.1:8080/?id=1'%20OR%20'1'='1"
+```
+Expected log:
+```
+[PAYLOAD] Malicious payload detected from 127.0.0.1
+```
+
+3. Test XSS:
+```bash
+curl "http://127.0.0.1:8080/?q=<script>alert('xss')</script>"
+```
+Expected log:
+```
+[PAYLOAD] Malicious payload detected from 127.0.0.1
+```
+
+4. Test LFI:
+```bash
+curl "http://127.0.0.1:8080/?file=../../etc/passwd"
+```
+Expected log:
+```
+[PAYLOAD] Malicious payload detected from 127.0.0.1
+```
+
+Note: Barcode Guard uses regex patterns to match known attack signatures. If a payload bypasses the filter, it may still be caught by Bot Detection (User-Agent + timing) or the Tarpit mechanism.
 
 ---
 
@@ -159,9 +175,7 @@ Requirements:
 
 Linux / macOS:
 ```bash
-# Ubuntu/Debian example
 sudo apt update && sudo apt install default-jdk git -y
-
 git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
 cd StealthDefense
 javac StealthDefense.java
@@ -190,8 +204,6 @@ javac StealthDefense.java
 java StealthDefense --i-own-this-network
 ```
 
-Note: If `javac` is not in PATH on Windows, use full path to the JDK `bin\javac.exe`.
-
 ---
 
 ## Logs
@@ -202,18 +214,18 @@ Output files:
 
 Quick check:
 ```bash
-cat stealth_log.csv | head -n 20
+head -n 20 stealth_log.csv
 jq '.' stealth_log.json | less
 ```
 
-Include sample CSV/JSON snippets here if you want users to see exact fields.
+Include sample CSV/JSON snippets if you want users to see exact fields.
 
 ---
 
 ## Troubleshooting
 
-- Permission errors when using `--block-cmd`: run with root/admin or use a command that does not require root for testing.
-- Port already in use: ensure no service binds to the configured ports (use `ss -ltnp` / `netstat -ano`).
+- Permission errors when using `--block-cmd`: run with root/admin or use a non-root test command.
+- Port already in use: ensure no service binds to the configured ports (`ss -ltnp` / `netstat -ano`).
 - Java version: ensure `java -version` reports 11+.
 
 ---
@@ -231,7 +243,7 @@ Include sample CSV/JSON snippets here if you want users to see exact fields.
 
 Use only on networks you own or are authorized to test. Unauthorized use may be illegal. This tool is for defensive research and testing only.
 
-If you find a security issue, please follow the responsible disclosure process: contact the repository owner or open an issue (do not post exploit details publicly).
+If you find a security issue, follow responsible disclosure: contact the repository owner or open an issue (do not post exploit details publicly).
 
 ---
 
@@ -268,12 +280,13 @@ GPL-3.0 — see LICENSE
 Aleksander (@aleksandergrambelik-png)
 
 Built with ❤️ and too much coffee, from a phone. 📱☕
+
 ## 📦 Version History
 
 | Version | Path | Features |
 |---------|------|----------|
-| **v2.6** (latest) | `v2.6/StealthDefense.java` | + Barcode Guard (SQLi/XSS/LFI Filter) |
-| **v2.5** | `v2.5/StealthDefense.java` | + Clickjacking Protection |
+| **v2.6** (latest) | `v2.6/StealthDefense.java` | Barcode Guard (SQLi/XSS/LFI Filter) |
+| **v2.5** | `v2.5/StealthDefense.java` | Clickjacking Protection |
 | **v2.4** | `v2.4/StealthDefense.java` | Stable, no plugins |
 
 > The root `StealthDefense.java` is a copy of the latest version for easy compilation.
