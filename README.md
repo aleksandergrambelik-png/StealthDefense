@@ -8,19 +8,19 @@
 
 ---
 
-## 🎯 What is this?
+## Overview
 
-StealthDefense is a lightweight Java honeypot designed to:
-- Detect port scanners and automated bots
-- Trap attackers in a tarpit
-- Auto-blacklist malicious IPs
-- Log activity to CSV and JSON
+StealthDefense is a lightweight Java honeypot that:
+- Detects port scanners and automated bots
+- Traps attackers in a tarpit to slow them down
+- Auto-blacklists malicious IPs
+- Logs activity to CSV and JSON for analysis
 
-Zero external dependencies — pure Java Standard Library.
+Zero external dependencies — only the Java Standard Library.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 Clone, compile, and run:
 
@@ -32,18 +32,28 @@ java StealthDefense --i-own-this-network
 ```
 
 Required flag:
-- --i-own-this-network — Confirm you own the target network (REQUIRED)
+- `--i-own-this-network` — Confirm you own or are authorized to test the target network (REQUIRED).
 
-Available options:
-- --ports <list>         Comma-separated ports to listen on (e.g., 22,80,8080)
-- --threshold <n>        Number of distinct ports accessed before blacklisting
-- --window <ms>          Time window in milliseconds for threshold counting
-- --delay <ms>           Tarpit delay per byte sent back to the client
-- --max-duration <ms>    Maximum duration for a single tarpit session
-- --max-tarpit <n>       Maximum number of concurrent tarpit threads
-- --block-cmd <cmd>      Firewall command to run when blocking an IP (use %IP% placeholder)
+---
 
-Examples:
+## Options
+
+Flag | Description
+---|---
+--i-own-this-network | REQUIRED — Confirm ownership/authorization
+--ports <list> | Comma-separated ports to listen on (e.g., `22,80,8080`)
+--threshold <n> | Number of distinct ports accessed before blacklisting
+--window <ms> | Time window (ms) for threshold counting
+--delay <ms> | Tarpit delay per byte sent back to the client (ms)
+--max-duration <ms> | Max duration for a single tarpit session (ms)
+--max-tarpit <n> | Max concurrent tarpit threads
+--block-cmd <cmd> | Firewall command to run when blocking an IP (use `%IP%` placeholder)
+
+Suggested defaults (if applicable): ports=22,80,443; threshold=3; window=60000; delay=50; max-duration=300000; max-tarpit=10.
+
+---
+
+## Examples
 
 Basic:
 ```bash
@@ -57,33 +67,116 @@ java StealthDefense --i-own-this-network --ports 80,443,8080 --threshold 3
 
 With auto-block (requires root):
 ```bash
+# iptables (Linux)
 java StealthDefense --i-own-this-network --block-cmd "iptables -A INPUT -s %IP% -j DROP"
 ```
 
-Check logs:
+Example nftables command:
 ```bash
-cat stealth_log.csv
-cat stealth_log.json
+java StealthDefense --i-own-this-network --block-cmd "nft add rule inet filter input ip saddr %IP% drop"
+```
+
+Windows placeholder (requires admin & appropriate firewall command):
+```bash
+java StealthDefense --i-own-this-network --block-cmd "powershell -Command \"New-NetFirewallRule -RemoteAddress %IP% -Action Block -DisplayName 'StealthDefense'\""
 ```
 
 ---
 
-## ⚙️ How it works (high level)
+## Platforms & Installation
 
-- Listens on configured ports.
-- Tracks incoming connection patterns per source IP.
-- If an IP scans multiple ports within the configured window and exceeds the threshold, the IP is tar-pitted and optionally blocked.
-- Events are recorded to CSV and JSON for analysis.
+Requirements:
+- Java JDK 11+ (Windows/macOS) or OpenJDK (Linux)
+- Git
+
+Linux / macOS:
+```bash
+# Ubuntu/Debian example
+sudo apt update && sudo apt install default-jdk git -y
+
+git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+cd StealthDefense
+javac StealthDefense.java
+java StealthDefense --i-own-this-network
+```
+
+Windows (CMD / PowerShell):
+1. Install Java from Adoptium or Oracle and ensure `javac` is on PATH.
+2. In CMD/PowerShell:
+```cmd
+git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+cd StealthDefense
+javac StealthDefense.java
+java StealthDefense --i-own-this-network
+```
+
+Windows (WSL — recommended for devs):
+```powershell
+# In PowerShell (install WSL)
+wsl --install
+# Then in WSL:
+sudo apt update && sudo apt install default-jdk git -y
+git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+cd StealthDefense
+javac StealthDefense.java
+java StealthDefense --i-own-this-network
+```
+
+Note: If `javac` is not in PATH on Windows, use full path to the JDK `bin\javac.exe`.
 
 ---
 
-## ⚠️ Disclaimer
+## Logs
 
-Use only on networks you own or are authorized to test. Unauthorized use may be illegal. This tool is for defensive and research purposes only.
+Output files:
+- `stealth_log.csv` — CSV log of events
+- `stealth_log.json` — JSON log for structured analysis
+
+Quick check:
+```bash
+cat stealth_log.csv | head -n 20
+jq '.' stealth_log.json | less
+```
+
+Include sample CSV/JSON snippets here if you want users to see exact fields.
 
 ---
 
-## 🤖 Built With AI Collaboration
+## Troubleshooting
+
+- Permission errors when using `--block-cmd`: run with root/admin or use a command that does not require root for testing.
+- Port already in use: ensure no service binds to the configured ports (use `ss -ltnp` / `netstat -ano`).
+- Java version: ensure `java -version` reports 11+.
+
+---
+
+## How it works (high level)
+
+- Listens concurrently on configured ports.
+- Tracks connection patterns per source IP over the specified time window.
+- If an IP connects to multiple distinct ports within the window and exceeds the threshold, it is tar-pitted and optionally blocked using `--block-cmd`.
+- Events are recorded to CSV/JSON for later analysis.
+
+---
+
+## Responsible Use & Disclaimer
+
+Use only on networks you own or are authorized to test. Unauthorized use may be illegal. This tool is for defensive research and testing only.
+
+If you find a security issue, please follow the responsible disclosure process: contact the repository owner or open an issue (do not post exploit details publicly).
+
+---
+
+## Contributing
+
+Contributions, bug reports, and PRs are welcome. Please:
+1. Fork the repo
+2. Create a feature branch
+3. Open a PR with a clear description and test instructions
+
+---
+
+## Built With AI Collaboration
 
 Role | Contributor
 ---|---
@@ -92,17 +185,17 @@ Architecture & Core Logic | Aleksander (human)
 Debugging & Code Fixes | DeepSeek V4.1 Pro
 README & Docs | DeepSeek, Aleksander, GitHub Copilot
 
-Note: AI tools were used as assistants. Final design and quality control were performed by the human author.
+AI tools assisted; final design and QA by the human author.
 
 ---
 
-## 📜 License
+## License
 
 GPL-3.0 — see LICENSE
 
 ---
 
-## 👤 Author
+## Author
 
 Aleksander (@aleksandergrambelik-png)
 
