@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.text.SimpleDateFormat;
+import java.util.regex.Pattern;
 
 public class StealthDefense {
 
@@ -26,10 +27,22 @@ public class StealthDefense {
         "java/", "okhttp", "axios", "postman"
     };
 
+    // --- BARCODE GUARD PATTERNS ---
+    private static final Pattern SQLI_PATTERN = Pattern.compile(
+        "(?i)(union.*select|select.*from|insert.*into|delete.*from|drop.*table|update.*set|'.*or.*'.*=.*')"
+    );
+    private static final Pattern XSS_PATTERN = Pattern.compile(
+        "(?i)(<script.*?>|javascript:|onerror=|onload=|<img.*?src=)"
+    );
+    private static final Pattern LFI_PATTERN = Pattern.compile(
+        "(?i)(\\.\\./|\\.\\.\\\\|/etc/passwd|/etc/shadow|c:\\\\windows)"
+    );
+
     private static final AtomicLong cConn = new AtomicLong(0);
     private static final AtomicLong cTarpit = new AtomicLong(0);
     private static final AtomicLong cThreat = new AtomicLong(0);
     private static final AtomicLong cBot = new AtomicLong(0);
+    private static final AtomicLong cPayload = new AtomicLong(0); // Counter buat Barcode Guard
     
     private static final Map<String, Long> ipFirstHit = new ConcurrentHashMap<>();
     private static final Map<String, Set<Integer>> ipPorts = new ConcurrentHashMap<>();
@@ -69,7 +82,8 @@ public class StealthDefense {
                     System.out.print("\r[STAT] Conn:" + cConn.get() + 
                                      " | Tarpit:" + cTarpit.get() + 
                                      " | Threat:" + cThreat.get() + 
-                                     " | Bot:" + cBot.get() + "   ");
+                                     " | Bot:" + cBot.get() + 
+                                     " | Payload:" + cPayload.get() + "   ");
                 } catch (Exception e) {}
             }
         }, "Stats").start();
@@ -183,7 +197,7 @@ public class StealthDefense {
 
     private static void printUsage() {
         System.out.println("╔══════════════════════════════════════════════════════╗");
-        System.out.println("║         StealthDefense v2.5 (Universal Edition)      ║");
+        System.out.println("║         StealthDefense v2.6 (Universal Edition)      ║");
         System.out.println("╚══════════════════════════════════════════════════════╝");
         System.out.println();
         System.out.println("USAGE:");
@@ -207,6 +221,7 @@ public class StealthDefense {
         System.out.println();
         System.out.println("PLUGINS:");
         System.out.println("  - clickjack_filter      Active (HTTP header + CSS injection)");
+        System.out.println("  - barcode_guard         Active (SQLi / XSS / LFI payload filter)");
         System.out.println();
     }
 
@@ -244,13 +259,13 @@ public class StealthDefense {
 
     private static void printBanner() {
         System.out.println("╔══════════════════════════════════════════════════════╗");
-        System.out.println("║         StealthDefense v2.5 (Universal Edition)      ║");
+        System.out.println("║         StealthDefense v2.6 (Universal Edition)      ║");
         System.out.println("╠══════════════════════════════════════════════════════╣");
         System.out.println("║  Environment : " + padRight(ENV_MODE, 36) + "║");
         System.out.println("║  Ports       : " + padRight(Arrays.toString(PORTS), 36) + "║");
         System.out.println("║  Telemetry   : " + padRight("DISABLED (local only)", 36) + "║");
         System.out.println("║  Log Output  : " + padRight("CSV + JSON", 36) + "║");
-        System.out.println("║  Plugins     : " + padRight("Clickjack Filter", 36) + "║");
+        System.out.println("║  Plugins     : " + padRight("Clickjack, Barcode", 36) + "║");
         System.out.println("╚══════════════════════════════════════════════════════╝");
         System.out.println();
     }
@@ -337,6 +352,19 @@ public class StealthDefense {
         }
     }
 
+    // --- BARCODE GUARD LOGIC ---
+    private static boolean isMaliciousPayload(String input) {
+        if (input == null || input.isEmpty()) return false;
+        
+        String decodedInput = input.toLowerCase();
+        
+        if (SQLI_PATTERN.matcher(decodedInput).find()) return true;
+        if (XSS_PATTERN.matcher(decodedInput).find()) return true;
+        if (LFI_PATTERN.matcher(decodedInput).find()) return true;
+        
+        return false;
+    }
+
     private static boolean detectBot(Socket s, int port) {
         try {
             long startTime = System.currentTimeMillis();
@@ -346,8 +374,10 @@ public class StealthDefense {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
                 String line;
                 boolean isBadUA = false;
+                boolean isMalicious = false;
                 
                 while ((line = reader.readLine()) != null && !line.isEmpty()) {
+                    // Cek User-Agent
                     if (line.toLowerCase().startsWith("user-agent:")) {
                         String ua = line.substring(11).trim().toLowerCase();
                         for (String bad : BAD_USER_AGENTS) {
@@ -357,6 +387,20 @@ public class StealthDefense {
                             }
                         }
                     }
+                    
+                    // Cek Payload di Request Line (GET /?id=1' OR '1'='1)
+                    if (line.startsWith("GET ") || line.startsWith("POST ")) {
+                        if (isMaliciousPayload(line)) {
+                            isMalicious = true;
+                        }
+                    }
+                }
+                
+                if (isMalicious) {
+                    cPayload.incrementAndGet();
+                    System.out.println("\n[PAYLOAD] Malicious payload detected from " + s.getInetAddress().getHostAddress());
+                    logEvent("PAYLOAD", s.getInetAddress().getHostAddress(), port, "Malicious payload detected");
+                    return true;
                 }
                 
                 long duration = System.currentTimeMillis() - startTime;

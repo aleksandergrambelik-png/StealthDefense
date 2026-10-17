@@ -57,11 +57,12 @@ Suggested defaults (if applicable): ports=22,80,443; threshold=3; window=60000; 
 
 ## 🔌 Plugins
 
-StealthDefense v2.5 includes built-in plugins that activate automatically.
+StealthDefense v2.5 // v2.6  includes built-in plugins that activate automatically.
 
 | Plugin | Status | Description |
 |--------|--------|-------------|
 | `clickjack_filter` | ✅ Active | Protects against Clickjacking attacks via HTTP headers + CSS injection. |
+| `barcode_guard` | ✅ Active | Filters malicious payloads (SQLi, XSS, LFI) using Regex pattern matching. |
 
 ### How to Test Clickjacking Protection
 
@@ -237,7 +238,8 @@ Built with ❤️ and too much coffee, from a phone. 📱☕
 
 | Version | Path | Features |
 |---------|------|----------|
-| **v2.5** (latest) | `v2.5/StealthDefense.java` | + Clickjacking Protection (X-Frame-Options + CSP) |
+| **v2.6** (latest) | `v2.6/StealthDefense.java` | + Barcode Guard (SQLi/XSS/LFI Filter) |
+| **v2.5** | `v2.5/StealthDefense.java` | + Clickjacking Protection |
 | **v2.4** | `v2.4/StealthDefense.java` | Stable, no plugins |
 
 > The root `StealthDefense.java` is a copy of the latest version for easy compilation.
