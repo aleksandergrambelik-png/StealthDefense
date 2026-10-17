@@ -4,7 +4,7 @@
 ![Platform](https://img.shields.io/badge/Platform-Termux%20%7C%20Proot%20%7C%20PC-blue)
 ![License](https://img.shields.io/badge/License-GPL--3.0-green)
 
-> Minimalist Honeypot + Anti-Bot + Tarpit defense system for Termux, Proot, and PC.
+> Minimalist Honeypot + Anti-Bot + Tarpit defense for Termux/PC. Built-in Anti-Clickjacking & Barcode Guard (SQLi/XSS/LFI filters). Zero dependencies.
 
 ---
 
