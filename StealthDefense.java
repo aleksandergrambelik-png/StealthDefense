@@ -183,7 +183,7 @@ public class StealthDefense {
 
     private static void printUsage() {
         System.out.println("╔══════════════════════════════════════════════════════╗");
-        System.out.println("║         StealthDefense v2.4 (Universal Edition)      ║");
+        System.out.println("║         StealthDefense v2.5 (Universal Edition)      ║");
         System.out.println("╚══════════════════════════════════════════════════════╝");
         System.out.println();
         System.out.println("USAGE:");
@@ -204,6 +204,9 @@ public class StealthDefense {
         System.out.println("OUTPUT:");
         System.out.println("  - stealth_log.csv       Log in CSV format");
         System.out.println("  - stealth_log.json      Log in JSON format");
+        System.out.println();
+        System.out.println("PLUGINS:");
+        System.out.println("  - clickjack_filter      Active (HTTP header + CSS injection)");
         System.out.println();
     }
 
@@ -241,12 +244,13 @@ public class StealthDefense {
 
     private static void printBanner() {
         System.out.println("╔══════════════════════════════════════════════════════╗");
-        System.out.println("║         StealthDefense v2.4 (Universal Edition)      ║");
+        System.out.println("║         StealthDefense v2.5 (Universal Edition)      ║");
         System.out.println("╠══════════════════════════════════════════════════════╣");
         System.out.println("║  Environment : " + padRight(ENV_MODE, 36) + "║");
         System.out.println("║  Ports       : " + padRight(Arrays.toString(PORTS), 36) + "║");
         System.out.println("║  Telemetry   : " + padRight("DISABLED (local only)", 36) + "║");
         System.out.println("║  Log Output  : " + padRight("CSV + JSON", 36) + "║");
+        System.out.println("║  Plugins     : " + padRight("Clickjack Filter", 36) + "║");
         System.out.println("╚══════════════════════════════════════════════════════╝");
         System.out.println();
     }
@@ -406,6 +410,18 @@ public class StealthDefense {
         }
     }
 
+    private static String injectClickjackingProtection(String htmlContent) {
+        String headers = "X-Frame-Options: DENY\r\n" +
+                         "Content-Security-Policy: frame-ancestors 'none'\r\n";
+        
+        String cssInjection = "<style>\n" +
+                              "  html { display: none !important; }\n" +
+                              "  body { display: none !important; }\n" +
+                              "</style>\n";
+        
+        return headers + cssInjection + htmlContent;
+    }
+
     private static String getBanner(int p) {
         if (p == 2121) return "220 (vsFTPd 3.0.3)\r\n";
         
@@ -422,10 +438,24 @@ public class StealthDefense {
         
         if (p == 8080) {
             String ebpf = EBPF_VERSIONS[rand.nextInt(EBPF_VERSIONS.length)];
+            
+            String fakeHtml = "<html><head><title>Router Login</title></head>" +
+                              "<body style='font-family: sans-serif; text-align: center; padding-top: 50px;'>" +
+                              "<h1>401 Unauthorized</h1>" +
+                              "<p>Please login to access the router configuration.</p>" +
+                              "<form>" +
+                              "<input type='text' placeholder='Username' style='margin: 5px; padding: 8px;'><br>" +
+                              "<input type='password' placeholder='Password' style='margin: 5px; padding: 8px;'><br>" +
+                              "<button type='submit' style='margin: 5px; padding: 8px 20px;'>Login</button>" +
+                              "</form></body></html>";
+            
+            String protectedHtml = injectClickjackingProtection(fakeHtml);
+            
             return "HTTP/1.1 200 OK\r\n" +
                    "Server: Microsoft-IIS/10.0\r\n" +
                    "X-Powered-By: eBPF/" + ebpf + "\r\n" +
-                   "X-Protection: Active\r\n\r\n";
+                   "X-Protection: Active\r\n" +
+                   protectedHtml; 
         }
         
         return "220 Service Ready\r\n";
