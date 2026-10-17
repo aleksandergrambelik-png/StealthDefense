@@ -88,6 +88,40 @@ StealthDefense v2.5 // v2.6  includes built-in plugins that activate automatical
    If the iframe is blank/invisible, the protection is working. 🛡️
 
 ```
+### How to Test Barcode Guard (SQLi / XSS / LFI)
+
+1. Run StealthDefense (if not already running):
+   ```bash
+   java StealthDefense --i-own-this-network
+
+2. Test SQL Injection:
+   ```bash
+   curl "http://127.0.0.1:8080/?id=1'%20OR%20'1'='1"
+   ```
+   Expected log:
+   ```
+   [PAYLOAD] Malicious payload detected from 127.0.0.1
+   ```
+3. Test XSS (Cross-Site Scripting):
+   ```bash
+   curl "http://127.0.0.1:8080/?q=<script>alert('xss')</script>"
+   ```
+   Expected log:
+   ```
+   [PAYLOAD] Malicious payload detected from 127.0.0.1
+   ```
+4. Test LFI (Local File Inclusion):
+   ```bash
+   curl "http://127.0.0.1:8080/?file=../../etc/passwd"
+   ```
+   Expected log:
+   ```
+   [PAYLOAD] Malicious payload detected from 127.0.0.1
+   ```
+
+Note: Barcode Guard works by matching known attack patterns (Regex). If a payload bypasses the filter, it will still be caught by the Bot Detection (User-Agent + Timing) or Tarpit mechanism.
+
+```
 
 Basic:
 ```bash
