@@ -55,6 +55,39 @@ Suggested defaults (if applicable): ports=22,80,443; threshold=3; window=60000; 
 
 ## Examples
 
+## 🔌 Plugins
+
+StealthDefense v2.5 includes built-in plugins that activate automatically.
+
+| Plugin | Status | Description |
+|--------|--------|-------------|
+| `clickjack_filter` | ✅ Active | Protects against Clickjacking attacks via HTTP headers + CSS injection. |
+
+### How to Test Clickjacking Protection
+
+1. Run StealthDefense:
+   ```bash
+   java StealthDefense --i-own-this-network
+
+2. Check the HTTP headers:
+   ```bash
+   curl -I http://127.0.0.1:8080
+   ```
+   Expected output:
+   ```
+   X-Frame-Options: DENY
+   Content-Security-Policy: frame-ancestors 'none'
+   ```
+3. Visual test (open in browser):
+   Create an HTML file and open it:
+   ```html
+   <h1>Clickjacking Test</h1>
+   <iframe src="http://127.0.0.1:8080" width="600" height="400"></iframe>
+   ```
+   If the iframe is blank/invisible, the protection is working. 🛡️
+
+```
+
 Basic:
 ```bash
 java StealthDefense --i-own-this-network
