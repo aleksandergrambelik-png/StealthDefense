@@ -27,7 +27,6 @@ public class StealthDefense {
         "java/", "okhttp", "axios", "postman"
     };
 
-    // --- BARCODE GUARD PATTERNS ---
     private static final Pattern SQLI_PATTERN = Pattern.compile(
         "(?i)(union.*select|select.*from|insert.*into|delete.*from|drop.*table|update.*set|'.*or.*'.*=.*')"
     );
@@ -42,7 +41,7 @@ public class StealthDefense {
     private static final AtomicLong cTarpit = new AtomicLong(0);
     private static final AtomicLong cThreat = new AtomicLong(0);
     private static final AtomicLong cBot = new AtomicLong(0);
-    private static final AtomicLong cPayload = new AtomicLong(0); // Counter buat Barcode Guard
+    private static final AtomicLong cPayload = new AtomicLong(0);
     
     private static final Map<String, Long> ipFirstHit = new ConcurrentHashMap<>();
     private static final Map<String, Set<Integer>> ipPorts = new ConcurrentHashMap<>();
@@ -306,7 +305,19 @@ public class StealthDefense {
         boolean isThreat = false;
         long now = System.currentTimeMillis();
         
-        if (detectBot(s, port)) {
+        String requestData = readRequest(s, port);
+        
+        if (requestData != null && isMaliciousPayload(requestData)) {
+            cPayload.incrementAndGet();
+            System.out.println("\n[PAYLOAD] Malicious payload detected from " + ip + " on port " + port);
+            logEvent("PAYLOAD", ip, port, "Malicious payload detected");
+            blacklist.add(ip);
+            cThreat.incrementAndGet();
+            tarpit(s, ip);
+            return;
+        }
+
+        if (detectBot(s, port, requestData)) {
             isThreat = true;
             cBot.incrementAndGet();
             System.out.println("\n[BOT] " + ip + " flagged as bot!");
@@ -352,7 +363,35 @@ public class StealthDefense {
         }
     }
 
-    // --- BARCODE GUARD LOGIC ---
+    private static String readRequest(Socket s, int port) {
+        try {
+            s.setSoTimeout(2000);
+            InputStream in = s.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            
+            StringBuilder request = new StringBuilder();
+            String line;
+            boolean firstLine = true;
+            long ttfbStart = 0;
+
+            while ((line = reader.readLine()) != null && !line.isEmpty()) {
+                if (firstLine) {
+                    ttfbStart = System.currentTimeMillis();
+                    firstLine = false;
+                }
+                request.append(line).append("\n");
+            }
+            
+            long ttfb = System.currentTimeMillis() - ttfbStart;
+            return request.toString() + "|TTFB:" + ttfb;
+            
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private static boolean isMaliciousPayload(String input) {
         if (input == null || input.isEmpty()) return false;
         
@@ -365,19 +404,15 @@ public class StealthDefense {
         return false;
     }
 
-    private static boolean detectBot(Socket s, int port) {
+    private static boolean detectBot(Socket s, int port, String requestData) {
         try {
-            long startTime = System.currentTimeMillis();
-            
             if (port == 8080) {
-                s.setSoTimeout(2000);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                String line;
-                boolean isBadUA = false;
-                boolean isMalicious = false;
+                if (requestData == null) return false;
                 
-                while ((line = reader.readLine()) != null && !line.isEmpty()) {
-                    // Cek User-Agent
+                boolean isBadUA = false;
+                String[] lines = requestData.split("\n");
+                
+                for (String line : lines) {
                     if (line.toLowerCase().startsWith("user-agent:")) {
                         String ua = line.substring(11).trim().toLowerCase();
                         for (String bad : BAD_USER_AGENTS) {
@@ -387,24 +422,17 @@ public class StealthDefense {
                             }
                         }
                     }
-                    
-                    // Cek Payload di Request Line (GET /?id=1' OR '1'='1)
-                    if (line.startsWith("GET ") || line.startsWith("POST ")) {
-                        if (isMaliciousPayload(line)) {
-                            isMalicious = true;
-                        }
-                    }
                 }
                 
-                if (isMalicious) {
-                    cPayload.incrementAndGet();
-                    System.out.println("\n[PAYLOAD] Malicious payload detected from " + s.getInetAddress().getHostAddress());
-                    logEvent("PAYLOAD", s.getInetAddress().getHostAddress(), port, "Malicious payload detected");
-                    return true;
+                long ttfb = 9999;
+                if (requestData.contains("|TTFB:")) {
+                    try {
+                        String ttfbStr = requestData.substring(requestData.indexOf("|TTFB:") + 6);
+                        ttfb = Long.parseLong(ttfbStr);
+                    } catch (Exception e) {}
                 }
                 
-                long duration = System.currentTimeMillis() - startTime;
-                if (isBadUA || duration < BOT_TIME_THRESHOLD_MS) {
+                if (isBadUA || ttfb < BOT_TIME_THRESHOLD_MS) {
                     return true;
                 }
             } else {
