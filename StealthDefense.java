@@ -42,7 +42,7 @@ public class StealthDefense {
     private static final AtomicLong cTarpit = new AtomicLong(0);
     private static final AtomicLong cThreat = new AtomicLong(0);
     private static final AtomicLong cBot = new AtomicLong(0);
-    private static final AtomicLong cPayload = new AtomicLong(0); // Counter buat Barcode Guard
+    private static final AtomicLong cPayload = new AtomicLong(0);
     
     private static final Map<String, Long> ipFirstHit = new ConcurrentHashMap<>();
     private static final Map<String, Set<Integer>> ipPorts = new ConcurrentHashMap<>();
@@ -197,7 +197,7 @@ public class StealthDefense {
 
     private static void printUsage() {
         System.out.println("╔══════════════════════════════════════════════════════╗");
-        System.out.println("║         StealthDefense v2.6 (Universal Edition)      ║");
+        System.out.println("║         StealthDefense v2.7 (Universal Edition)      ║");
         System.out.println("╚══════════════════════════════════════════════════════╝");
         System.out.println();
         System.out.println("USAGE:");
@@ -259,7 +259,7 @@ public class StealthDefense {
 
     private static void printBanner() {
         System.out.println("╔══════════════════════════════════════════════════════╗");
-        System.out.println("║         StealthDefense v2.6 (Universal Edition)      ║");
+        System.out.println("║         StealthDefense v2.7 (Universal Edition)      ║");
         System.out.println("╠══════════════════════════════════════════════════════╣");
         System.out.println("║  Environment : " + padRight(ENV_MODE, 36) + "║");
         System.out.println("║  Ports       : " + padRight(Arrays.toString(PORTS), 36) + "║");
@@ -298,6 +298,7 @@ public class StealthDefense {
     private static void process(Socket s, int port) {
         String ip = s.getInetAddress().getHostAddress();
         
+        // FIX 4: Early blacklist check (langsung tarpit & return)
         if (blacklist.contains(ip)) {
             tarpit(s, ip);
             return;
@@ -306,7 +307,20 @@ public class StealthDefense {
         boolean isThreat = false;
         long now = System.currentTimeMillis();
         
-        if (detectBot(s, port)) {
+        // FIX 1 & 3: Baca request, cek TTFB, dan filter payload di semua port
+        String requestData = readRequest(s, port);
+        
+        if (requestData != null && isMaliciousPayload(requestData)) {
+            cPayload.incrementAndGet();
+            System.out.println("\n[PAYLOAD] Malicious payload detected from " + ip + " on port " + port);
+            logEvent("PAYLOAD", ip, port, "Malicious payload detected");
+            blacklist.add(ip);
+            cThreat.incrementAndGet();
+            tarpit(s, ip);
+            return;
+        }
+
+        if (detectBot(s, port, requestData)) {
             isThreat = true;
             cBot.incrementAndGet();
             System.out.println("\n[BOT] " + ip + " flagged as bot!");
@@ -352,6 +366,37 @@ public class StealthDefense {
         }
     }
 
+    // --- FIX 1 & 3: Method Baca Request & Ukur TTFB ---
+    private static String readRequest(Socket s, int port) {
+        try {
+            s.setSoTimeout(2000);
+            InputStream in = s.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            
+            StringBuilder request = new StringBuilder();
+            String line;
+            boolean firstLine = true;
+            long ttfbStart = 0;
+
+            while ((line = reader.readLine()) != null && !line.isEmpty()) {
+                if (firstLine) {
+                    ttfbStart = System.currentTimeMillis(); // TTFB dihitung dari baris pertama
+                    firstLine = false;
+                }
+                request.append(line).append("\n");
+            }
+            
+            // Simpan TTFB di thread-local atau return via format khusus
+            long ttfb = System.currentTimeMillis() - ttfbStart;
+            return request.toString() + "|TTFB:" + ttfb;
+            
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     // --- BARCODE GUARD LOGIC ---
     private static boolean isMaliciousPayload(String input) {
         if (input == null || input.isEmpty()) return false;
@@ -365,19 +410,15 @@ public class StealthDefense {
         return false;
     }
 
-    private static boolean detectBot(Socket s, int port) {
+    private static boolean detectBot(Socket s, int port, String requestData) {
         try {
-            long startTime = System.currentTimeMillis();
-            
             if (port == 8080) {
-                s.setSoTimeout(2000);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                String line;
-                boolean isBadUA = false;
-                boolean isMalicious = false;
+                if (requestData == null) return false;
                 
-                while ((line = reader.readLine()) != null && !line.isEmpty()) {
-                    // Cek User-Agent
+                boolean isBadUA = false;
+                String[] lines = requestData.split("\n");
+                
+                for (String line : lines) {
                     if (line.toLowerCase().startsWith("user-agent:")) {
                         String ua = line.substring(11).trim().toLowerCase();
                         for (String bad : BAD_USER_AGENTS) {
@@ -387,24 +428,18 @@ public class StealthDefense {
                             }
                         }
                     }
-                    
-                    // Cek Payload di Request Line (GET /?id=1' OR '1'='1)
-                    if (line.startsWith("GET ") || line.startsWith("POST ")) {
-                        if (isMaliciousPayload(line)) {
-                            isMalicious = true;
-                        }
-                    }
                 }
                 
-                if (isMalicious) {
-                    cPayload.incrementAndGet();
-                    System.out.println("\n[PAYLOAD] Malicious payload detected from " + s.getInetAddress().getHostAddress());
-                    logEvent("PAYLOAD", s.getInetAddress().getHostAddress(), port, "Malicious payload detected");
-                    return true;
+                // Ekstrak TTFB dari requestData
+                long ttfb = 9999;
+                if (requestData.contains("|TTFB:")) {
+                    try {
+                        String ttfbStr = requestData.substring(requestData.indexOf("|TTFB:") + 6);
+                        ttfb = Long.parseLong(ttfbStr);
+                    } catch (Exception e) {}
                 }
                 
-                long duration = System.currentTimeMillis() - startTime;
-                if (isBadUA || duration < BOT_TIME_THRESHOLD_MS) {
+                if (isBadUA || ttfb < BOT_TIME_THRESHOLD_MS) {
                     return true;
                 }
             } else {
@@ -454,6 +489,7 @@ public class StealthDefense {
         }
     }
 
+    // --- FIX 2: Format HTTP yang Bener ---
     private static String injectClickjackingProtection(String htmlContent) {
         String headers = "X-Frame-Options: DENY\r\n" +
                          "Content-Security-Policy: frame-ancestors 'none'\r\n";
@@ -493,13 +529,14 @@ public class StealthDefense {
                               "<button type='submit' style='margin: 5px; padding: 8px 20px;'>Login</button>" +
                               "</form></body></html>";
             
+            // FIX 2: Gabungkan header HTTP dengan body HTML yang udah diproteksi
             String protectedHtml = injectClickjackingProtection(fakeHtml);
             
             return "HTTP/1.1 200 OK\r\n" +
                    "Server: Microsoft-IIS/10.0\r\n" +
                    "X-Powered-By: eBPF/" + ebpf + "\r\n" +
                    "X-Protection: Active\r\n" +
-                   protectedHtml; 
+                   protectedHtml; // Headers dari injectClickjackingProtection masuk ke sini
         }
         
         return "220 Service Ready\r\n";
