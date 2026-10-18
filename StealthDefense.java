@@ -404,51 +404,52 @@ public class StealthDefense {
         return false;
     }
 
-    private static boolean detectBot(Socket s, int port, String requestData) {
-        try {
-            if (port == 8080) {
-                if (requestData == null) return false;
-                
-                boolean isBadUA = false;
-                String[] lines = requestData.split("\n");
-                
-                for (String line : lines) {
-                    if (line.toLowerCase().startsWith("user-agent:")) {
-                        String ua = line.substring(11).trim().toLowerCase();
-                        for (String bad : BAD_USER_AGENTS) {
-                            if (ua.contains(bad)) {
-                                isBadUA = true;
-                                break;
-                            }
+private static boolean detectBot(Socket s, int port, String requestData) {
+    try {
+        if (port == 8080) {
+            if (requestData == null) return false;
+            
+            boolean isBadUA = false;
+            String[] lines = requestData.split("\n");
+            
+            for (String line : lines) {
+                if (line.toLowerCase().startsWith("user-agent:")) {
+                    String ua = line.substring(11).trim().toLowerCase();
+                    for (String bad : BAD_USER_AGENTS) {
+                        if (ua.contains(bad)) {
+                            isBadUA = true;
+                            break;
                         }
                     }
                 }
-                
-                long ttfb = 9999;
-                if (requestData.contains("|TTFB:")) {
-                    try {
-                        String ttfbStr = requestData.substring(requestData.indexOf("|TTFB:") + 6);
-                        ttfb = Long.parseLong(ttfbStr);
-                    } catch (Exception e) {}
-                }
-                
-                if (isBadUA || ttfb < BOT_TIME_THRESHOLD_MS) {
-                    return true;
-                }
-            } else {
-                s.setSoTimeout(500);
-                InputStream in = s.getInputStream();
-                if (in.available() > 0) {
-                    return true;
-                }
             }
-        } catch (SocketTimeoutException e) {
-            return false;
-        } catch (Exception e) {
-            return false;
+            
+            long ttfb = 9999;
+            if (requestData.contains("|TTFB:")) {
+                try {
+                    String ttfbStr = requestData.substring(requestData.indexOf("|TTFB:") + 6);
+                    ttfb = Long.parseLong(ttfbStr);
+                } catch (Exception e) {}
+            }
+            
+            if (isBadUA || ttfb < BOT_TIME_THRESHOLD_MS) {
+                return true;
+            }
+        } else {
+            s.setSoTimeout(500);
+            InputStream in = s.getInputStream();
+            
+            if (in.available() > 0) {
+                return true;
+            }
         }
+    } catch (SocketTimeoutException e) {
+        return false;
+    } catch (Exception e) {
         return false;
     }
+    return false;
+}
 
     private static void tarpit(Socket s, String ip) {
         if (cTarpit.get() >= MAX_TARPIT_THREADS) {
