@@ -298,7 +298,7 @@ public class StealthDefense {
     private static void process(Socket s, int port) {
         String ip = s.getInetAddress().getHostAddress();
         
-        // FIX 4: Early blacklist check (langsung tarpit & return)
+        // FIX 4: Early blacklist check (tarpit immediately & return)
         if (blacklist.contains(ip)) {
             tarpit(s, ip);
             return;
@@ -307,7 +307,7 @@ public class StealthDefense {
         boolean isThreat = false;
         long now = System.currentTimeMillis();
         
-        // FIX 1 & 3: Baca request, cek TTFB, dan filter payload di semua port
+        // FIX 1 & 3: Read request, check TTFB, and filter payload on all ports
         String requestData = readRequest(s, port);
         
         if (requestData != null && isMaliciousPayload(requestData)) {
@@ -366,7 +366,7 @@ public class StealthDefense {
         }
     }
 
-    // --- FIX 1 & 3: Method Baca Request & Ukur TTFB ---
+    // --- FIX 1 & 3: Method to Read Request & Measure TTFB ---
     private static String readRequest(Socket s, int port) {
         try {
             s.setSoTimeout(2000);
@@ -380,13 +380,13 @@ public class StealthDefense {
 
             while ((line = reader.readLine()) != null && !line.isEmpty()) {
                 if (firstLine) {
-                    ttfbStart = System.currentTimeMillis(); // TTFB dihitung dari baris pertama
+                    ttfbStart = System.currentTimeMillis(); // TTFB calculated from first line
                     firstLine = false;
                 }
                 request.append(line).append("\n");
             }
             
-            // Simpan TTFB di thread-local atau return via format khusus
+            // Store TTFB in thread-local or return via custom format
             long ttfb = System.currentTimeMillis() - ttfbStart;
             return request.toString() + "|TTFB:" + ttfb;
             
@@ -430,7 +430,7 @@ public class StealthDefense {
                     }
                 }
                 
-                // Ekstrak TTFB dari requestData
+                // Extract TTFB from requestData
                 long ttfb = 9999;
                 if (requestData.contains("|TTFB:")) {
                     try {
@@ -489,7 +489,7 @@ public class StealthDefense {
         }
     }
 
-    // --- FIX 2: Format HTTP yang Bener ---
+    // --- FIX 2: Correct HTTP Format ---
     private static String injectClickjackingProtection(String htmlContent) {
         String headers = "X-Frame-Options: DENY\r\n" +
                          "Content-Security-Policy: frame-ancestors 'none'\r\n";
@@ -529,14 +529,14 @@ public class StealthDefense {
                               "<button type='submit' style='margin: 5px; padding: 8px 20px;'>Login</button>" +
                               "</form></body></html>";
             
-            // FIX 2: Gabungkan header HTTP dengan body HTML yang udah diproteksi
+            // FIX 2: Combine HTTP headers with protected HTML body
             String protectedHtml = injectClickjackingProtection(fakeHtml);
             
             return "HTTP/1.1 200 OK\r\n" +
                    "Server: Microsoft-IIS/10.0\r\n" +
                    "X-Powered-By: eBPF/" + ebpf + "\r\n" +
                    "X-Protection: Active\r\n" +
-                   protectedHtml; // Headers dari injectClickjackingProtection masuk ke sini
+                   protectedHtml; // Headers from injectClickjackingProtection go here
         }
         
         return "220 Service Ready\r\n";
