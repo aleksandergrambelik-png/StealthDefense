@@ -8,6 +8,25 @@
 
 ---
 
+## 🚀 SanderUltimate v3.0 (Next Generation)
+
+The next-generation Honeypot is now available in the `v3.0-ultimate/` folder. It integrates AI-driven decision making (`SanderCore`), real-time hardware probing, and a Cyberpunk HUD.
+
+### How to Run v3.0
+
+1. Navigate to the v3.0 folder:
+   ```bash
+   cd v3.0-ultimate
+```
+2. Build the source:
+   ```bash
+   chmod +x build.sh
+   ./build.sh
+   ```
+3. Run the Honeypot:
+   ```bash
+   java -jar SanderUltimate.jar
+   ```
 ## Overview
 
 StealthDefense is a lightweight Java honeypot that:
