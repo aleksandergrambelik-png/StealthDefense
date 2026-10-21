@@ -19,7 +19,8 @@ The next-generation Honeypot is now available in the `v3.0-ultimate/` folder. It
    cd v3.0-ultimate
 ```
 2. Build the source:
-   ```bash
+
+  ```bash
    chmod +x build.sh
    ./build.sh
    ```
