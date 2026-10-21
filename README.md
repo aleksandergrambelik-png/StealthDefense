@@ -14,7 +14,7 @@ For Android and Termux users, install the required tools and clone the project f
 
 ```bash
 pkg update && pkg install git openjdk-17 -y
-git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+git clone https://github.com/aleksandergrambelik-png/StealthDefense.git
 cd StealthDefense
 javac StealthDefense.java
 java StealthDefense --i-own-this-network
@@ -35,24 +35,43 @@ This section is intended for Termux and mobile testing environments.
 
 ## SanderUltimate v3.0 (Next Generation)
 
-The next-generation Honeypot is now available in the `v3.0-ultimate/` folder. It integrates AI-driven decision making (`SanderCore`), real-time hardware probing, and a Cyberpunk HUD.
+The next-generation honeypot is now available in the `v3.0-ultimate/` folder. It combines AI-driven decision making (`SanderCore`), real-time hardware probing, and a cyberpunk-style HUD.
 
 ### How to Run v3.0
 
-1. Navigate to the v3.0 folder:
-   ```bash
-   cd v3.0-ultimate
-   ```
-2. Build the source:
+#### 1) Clone the repository
+```bash
+git clone https://github.com/aleksandergrambelik-png/StealthDefense.git
+cd StealthDefense
+```
 
-   ```bash
-   chmod +x build.sh
-   ./build.sh
-   ```
-3. Run the Honeypot:
-   ```bash
-   java -jar SanderUltimate.jar
-   ```
+#### 2) Open the v3.0 folder
+```bash
+cd v3.0-ultimate
+```
+
+#### 3) Install dependencies (Termux only)
+```bash
+pkg install openjdk-17 perl termux-api -y
+```
+
+#### 4) Build the project
+```bash
+chmod +x build.sh
+./build.sh
+```
+
+#### 5) Run the honeypot
+```bash
+java -jar SanderUltimate.jar
+```
+
+### Requirements
+- Java 17+
+- Termux / Linux / WSL / PC environment
+- Basic shell access
+
+---
 
 ## Overview
 
@@ -71,7 +90,7 @@ Zero external dependencies — only the Java Standard Library.
 Clone, compile, and run:
 
 ```bash
-git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+git clone https://github.com/aleksandergrambelik-png/StealthDefense.git
 cd StealthDefense
 javac StealthDefense.java
 java StealthDefense --i-own-this-network
@@ -222,7 +241,7 @@ Requirements:
 Linux / macOS:
 ```bash
 sudo apt update && sudo apt install default-jdk git -y
-git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+git clone https://github.com/aleksandergrambelik-png/StealthDefense.git
 cd StealthDefense
 javac StealthDefense.java
 java StealthDefense --i-own-this-network
@@ -232,7 +251,7 @@ Windows (CMD / PowerShell):
 1. Install Java from Adoptium or Oracle and ensure `javac` is on PATH.
 2. In CMD/PowerShell:
 ```cmd
-git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+git clone https://github.com/aleksandergrambelik-png/StealthDefense.git
 cd StealthDefense
 javac StealthDefense.java
 java StealthDefense --i-own-this-network
@@ -244,7 +263,7 @@ Windows (WSL — recommended for devs):
 wsl --install
 # Then in WSL:
 sudo apt update && sudo apt install default-jdk git -y
-git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+git clone https://github.com/aleksandergrambelik-png/StealthDefense.git
 cd StealthDefense
 javac StealthDefense.java
 java StealthDefense --i-own-this-network
