@@ -194,6 +194,15 @@ Requirements:
 - Java JDK 11+ (Windows/macOS) or OpenJDK (Linux)
 - Git
 
+Termux / Android:
+```bash
+pkg update && pkg install git openjdk-17 -y
+git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+cd StealthDefense
+javac StealthDefense.java
+java StealthDefense --i-own-this-network
+```
+
 Linux / macOS:
 ```bash
 sudo apt update && sudo apt install default-jdk git -y
