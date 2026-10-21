@@ -8,6 +8,31 @@
 
 ---
 
+## Termux Installation
+
+For Android and Termux users, install the required tools and clone the project first:
+
+```bash
+pkg update && pkg install git openjdk-17 -y
+git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
+cd StealthDefense
+javac StealthDefense.java
+java StealthDefense --i-own-this-network
+```
+
+If SSH cloning fails in Termux, use HTTPS instead:
+
+```bash
+git clone https://github.com/aleksandergrambelik-png/StealthDefense.git
+cd StealthDefense
+javac StealthDefense.java
+java StealthDefense --i-own-this-network
+```
+
+This section is intended for Termux and mobile testing environments.
+
+---
+
 ## SanderUltimate v3.0 (Next Generation)
 
 The next-generation Honeypot is now available in the `v3.0-ultimate/` folder. It integrates AI-driven decision making (`SanderCore`), real-time hardware probing, and a Cyberpunk HUD.
@@ -194,15 +219,6 @@ Requirements:
 - Java JDK 11+ (Windows/macOS) or OpenJDK (Linux)
 - Git
 
-Termux / Android:
-```bash
-pkg update && pkg install git openjdk-17 -y
-git clone git@github.com:aleksandergrambelik-png/StealthDefense.git
-cd StealthDefense
-javac StealthDefense.java
-java StealthDefense --i-own-this-network
-```
-
 Linux / macOS:
 ```bash
 sudo apt update && sudo apt install default-jdk git -y
@@ -247,8 +263,6 @@ Quick check:
 head -n 20 stealth_log.csv
 jq '.' stealth_log.json | less
 ```
-
-Include sample CSV/JSON snippets if you want users to see exact fields.
 
 ---
 
