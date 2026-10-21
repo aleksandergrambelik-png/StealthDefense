@@ -1,4 +1,4 @@
-# StealthDefense 🛡️
+# StealthDefense
 
 ![Java](https://img.shields.io/badge/Java-100%25-orange)
 ![Platform](https://img.shields.io/badge/Platform-Termux%20%7C%20Proot%20%7C%20PC-blue)
@@ -8,7 +8,7 @@
 
 ---
 
-## 🚀 SanderUltimate v3.0 (Next Generation)
+## SanderUltimate v3.0 (Next Generation)
 
 The next-generation Honeypot is now available in the `v3.0-ultimate/` folder. It integrates AI-driven decision making (`SanderCore`), real-time hardware probing, and a Cyberpunk HUD.
 
@@ -17,10 +17,10 @@ The next-generation Honeypot is now available in the `v3.0-ultimate/` folder. It
 1. Navigate to the v3.0 folder:
    ```bash
    cd v3.0-ultimate
-```
+   ```
 2. Build the source:
 
-  ```bash
+   ```bash
    chmod +x build.sh
    ./build.sh
    ```
@@ -28,6 +28,7 @@ The next-generation Honeypot is now available in the `v3.0-ultimate/` folder. It
    ```bash
    java -jar SanderUltimate.jar
    ```
+
 ## Overview
 
 StealthDefense is a lightweight Java honeypot that:
@@ -115,8 +116,8 @@ StealthDefense v2.6 includes built-in plugins that activate automatically.
 
 | Plugin | Status | Description |
 |--------|--------:|-------------|
-| `clickjack_filter` | ✅ Active | Protects against clickjacking via HTTP headers + CSS injection. |
-| `barcode_guard`   | ✅ Active | Filters malicious payloads (SQLi, XSS, LFI) using regex pattern matching. |
+| `clickjack_filter` | Active | Protects against clickjacking via HTTP headers + CSS injection. |
+| `barcode_guard`   | Active | Filters malicious payloads (SQLi, XSS, LFI) using regex pattern matching. |
 
 ### How to Test Clickjacking Protection
 
@@ -299,9 +300,9 @@ GPL-3.0 — see LICENSE
 
 Aleksander (@aleksandergrambelik-png)
 
-Built with ❤️ and too much coffee, from a phone. 📱☕
+Built with love and too much coffee, from a phone.
 
-## 📦 Version History
+## Version History
 
 | Version | Path | Features |
 |---------|------|----------|
