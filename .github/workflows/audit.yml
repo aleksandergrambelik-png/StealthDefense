@@ -20,18 +20,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: List Files (Debug)
-      run: |
-        echo "Current directory: $(pwd)"
-        ls -la
-        echo "--- Root Java Files (v2.x) ---"
-        find . -maxdepth 1 -name "*.java"
-        echo "--- v3.0 Java Files ---"
-        find v3.0-ultimate -name "*.java" 2>/dev/null || echo "v3.0-ultimate not found"
-
     - name: Compile Root (v2.x)
       run: |
         echo "Compiling v2.x (root)..."
+        mkdir -p build
         javac -d build $(find . -maxdepth 1 -name "*.java")
         echo "v2.x compiled."
 
@@ -39,7 +31,15 @@ jobs:
       run: |
         echo "Compiling v3.0-ultimate..."
         mkdir -p v3.0-ultimate/build
-        javac -d v3.0-ultimate/build $(find v3.0-ultimate -name "*.java")
+        if [ -f "v3.0-ultimate/lib/SanderCoreLib.jar" ]; then
+            echo "SanderCoreLib.jar found in v3.0-ultimate/lib/"
+            javac -cp "v3.0-ultimate/lib/SanderCoreLib.jar" -d v3.0-ultimate/build $(find v3.0-ultimate -name "*.java")
+        else
+            echo "SanderCoreLib.jar not found. Downloading..."
+            mkdir -p v3.0-ultimate/lib
+            wget -q https://github.com/aleksandergrambelik-png/SanderCoreLib/raw/main/SanderCoreLib.jar -O v3.0-ultimate/lib/SanderCoreLib.jar
+            javac -cp "v3.0-ultimate/lib/SanderCoreLib.jar" -d v3.0-ultimate/build $(find v3.0-ultimate -name "*.java")
+        fi
         echo "v3.0-ultimate compiled."
 
     - name: Verify Compilation
