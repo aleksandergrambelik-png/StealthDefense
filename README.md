@@ -1,4 +1,9 @@
-# StealthDefense
+# StealthDefense 🛡️
+
+[![StealthDefense Audit](https://github.com/aleksandergrambelik-png/StealthDefense/actions/workflows/audit.yml/badge.svg)](https://github.com/aleksandergrambelik-png/StealthDefense/actions/workflows/audit.yml)
+
+> Minimalist Honeypot + Anti-Bot + Tarpit defense for Termux/PC.
+
 
 ![Java](https://img.shields.io/badge/Java-100%25-orange)
 ![Platform](https://img.shields.io/badge/Platform-Termux%20%7C%20Proot%20%7C%20PC-blue)
