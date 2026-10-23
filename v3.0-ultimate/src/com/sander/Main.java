@@ -1,6 +1,7 @@
 package com.sander;
 
 import com.sander.core.SanderCore;
+import com.sander.modules.StealthDefenseAI;
 import java.util.Scanner;
 
 public class Main {
@@ -11,7 +12,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         
         while (true) {
-            System.out.print("\033[2J\033[H"); // Clear screen
+            System.out.print("\033[2J\033[H");
             System.out.println("\033[1;36m=== SANDER CORE v1.3: CYBERPUNK HUD ===\033[0m");
             System.out.println("  SANDER ULTIMATE - HYBRID ARSENAL");
             System.out.println("==========================================");
@@ -24,8 +25,8 @@ public class Main {
             String choice = scanner.nextLine().trim();
             
             if (choice.equals("0")) {
-                System.out.println("\033[1;31m[*] Exiting Arsenal.\033[0m");
-                break;
+                System.out.println("\033[1;31m[*] Exiting Arsenal...\033[0m");
+                System.exit(0); 
             }
             
             if (choice.equals("2")) {
@@ -35,18 +36,22 @@ public class Main {
             } else if (choice.equals("1")) {
                 System.out.println("\033[1;33m[!] StealthDefense v3.0 engine is loading...\033[0m");
                 try {
-                    // Jalanin StealthDefense di thread terpisah biar menu gak nge-hang
-                    new Thread(() -> {
+                    Thread engineThread = new Thread(() -> {
                         try {
-                            Class.forName("com.sander.modules.StealthDefenseAI").getMethod("start").invoke(null);
+                            StealthDefenseAI.start();
                         } catch (Exception e) {
                             System.out.println("\033[1;31m[!] StealthDefenseAI failed: " + e.getMessage() + "\033[0m");
                         }
-                    }).start();
+                    });
+                    engineThread.start();
                     
                     System.out.println("\033[1;32m[+] StealthDefense is running in background.\033[0m");
-                    System.out.println("\033[1;33m[!] Press Enter to return to menu (engine will keep running).\033[0m");
+                    System.out.println("\033[1;33m[!] Press Enter to STOP the engine and return to menu...\033[0m");
                     scanner.nextLine();
+                    
+                    StealthDefenseAI.stop();
+                    Thread.sleep(1000); 
+                    
                 } catch (Exception e) {
                     System.out.println("\033[1;31m[!] Failed to load StealthDefenseAI.\033[0m");
                 }
@@ -54,7 +59,6 @@ public class Main {
                 System.out.println("\033[1;31m[!] Invalid choice.\033[0m");
             }
         }
-        scanner.close();
     }
     
     private static void showAnimatedHUD(SanderCore ai) {

@@ -89,7 +89,9 @@ public class SanderCore {
                 hwBattery = Integer.parseInt(result.trim());
                 lastProbeTime = now;
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 
     private long nextValue() {
@@ -150,10 +152,6 @@ public class SanderCore {
             if (current >= max) return RED + bar.toString() + RESET;
             if (current >= max * 0.7) return YELLOW + bar.toString() + RESET;
             return GREEN + bar.toString() + RESET;
-        }
-        
-        public static void printHeader() {
-            System.out.println(CYAN + "=== SANDER CORE v1.0: TERMUX EDITION ===" + RESET);
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.sander.modules;
 
 import com.sander.core.SanderCore;
-import com.sander.core.TerminalFX;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -40,7 +39,11 @@ public class StealthDefenseAI {
     private static final Set<String> blacklist = ConcurrentHashMap.newKeySet();
     private static final java.util.Random rand = new java.util.Random();
 
+    private static volatile boolean running = true;
+    private static final List<ServerSocket> serverSockets = new ArrayList<>();
+
     public static void start() {
+        running = true;
         aiBrain = new SanderCore();
         aiBrain.loadState();
         
@@ -48,7 +51,7 @@ public class StealthDefenseAI {
         System.out.println("[CORE] AI Brain Online. Battery: " + aiBrain.getHwBattery() + "%");
         
         new Thread(() -> {
-            while (true) {
+            while (running) {
                 try { aiBrain.syncWithHardware(); Thread.sleep(1000); } catch (Exception e) {}
             }
         }, "HardwareSync").start();
@@ -56,26 +59,22 @@ public class StealthDefenseAI {
         for (int p : PORTS) {
             new Thread(() -> listen(p), "Listener-" + p).start();
         }
-        
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(3000);
-                    System.out.println("\n[STAT] Conn:" + cConn.get() + 
-                                     " | Tarpit:" + cTarpit.get() + 
-                                     " | Threat:" + cThreat.get() + 
-                                     " | Bot:" + cBot.get() + 
-                                     " | Stress:" + aiBrain.getStressLevel() + "/" + SanderCore.MAX_STRESS +
-                                     " | Batt:" + aiBrain.getHwBattery() + "%   ");
-                } catch (Exception e) {}
-            }
-        }, "Stats").start();
+    }
+
+    public static void stop() {
+        running = false;
+        for (ServerSocket ss : serverSockets) {
+            try { ss.close(); } catch (Exception e) {}
+        }
+        serverSockets.clear();
+        System.out.println("[STOP] All listeners closed.");
     }
 
     private static void listen(int port) {
         try (ServerSocket ss = new ServerSocket(port)) {
+            serverSockets.add(ss);
             System.out.println("[LISTEN] Port " + port + " active.");
-            while (true) {
+            while (running) {
                 Socket s = ss.accept();
                 cConn.incrementAndGet();
                 String ip = s.getInetAddress().getHostAddress();
@@ -88,7 +87,7 @@ public class StealthDefenseAI {
                 new Thread(() -> process(s, port), "Handler-" + port).start();
             }
         } catch (Exception e) {
-            System.err.println("[FATAL] Port " + port + " failed: " + e.getMessage());
+            if (running) System.err.println("[FATAL] Port " + port + " failed: " + e.getMessage());
         }
     }
 

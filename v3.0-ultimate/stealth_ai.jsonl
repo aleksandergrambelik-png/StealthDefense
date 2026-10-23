@@ -1,0 +1,20 @@
+{"timestamp":"2026-10-23 15:03:34","event":"AI_TARPIT","ip":"127.0.0.1","port":8080,"details":"BAD_USER_AGENT -> AGGRESSIVE_SCAN"}
+{"timestamp":"2026-10-23 15:03:34","event":"TARPIT","ip":"127.0.0.1","port":8080,"details":"Engaged"}
+{"timestamp":"2026-10-23 15:04:07","event":"REHIT_BLACKLIST","ip":"127.0.0.1","port":8080,"details":"Blocked immediately"}
+{"timestamp":"2026-10-23 15:04:30","event":"REHIT_BLACKLIST","ip":"127.0.0.1","port":8080,"details":"Blocked immediately"}
+{"timestamp":"2026-10-23 15:07:47","event":"AI_TARPIT","ip":"127.0.0.1","port":8080,"details":"BAD_USER_AGENT -> AGGRESSIVE_SCAN"}
+{"timestamp":"2026-10-23 15:07:47","event":"TARPIT","ip":"127.0.0.1","port":8080,"details":"Engaged"}
+{"timestamp":"2026-10-23 15:08:20","event":"REHIT_BLACKLIST","ip":"127.0.0.1","port":8080,"details":"Blocked immediately"}
+{"timestamp":"2026-10-23 15:10:30","event":"AI_TARPIT","ip":"127.0.0.1","port":8080,"details":"BAD_USER_AGENT -> AGGRESSIVE_SCAN"}
+{"timestamp":"2026-10-23 15:10:30","event":"TARPIT","ip":"127.0.0.1","port":8080,"details":"Engaged"}
+{"timestamp":"2026-10-23 15:13:09","event":"AI_TARPIT","ip":"127.0.0.1","port":8080,"details":"BAD_USER_AGENT -> AGGRESSIVE_SCAN"}
+{"timestamp":"2026-10-23 15:13:09","event":"TARPIT","ip":"127.0.0.1","port":8080,"details":"Engaged"}
+{"timestamp":"2026-10-23 15:19:25","event":"AI_TARPIT","ip":"127.0.0.1","port":8080,"details":"BAD_USER_AGENT -> AGGRESSIVE_SCAN"}
+{"timestamp":"2026-10-23 15:19:25","event":"TARPIT","ip":"127.0.0.1","port":8080,"details":"Engaged"}
+{"timestamp":"2026-10-23 16:16:56","event":"AI_TARPIT","ip":"127.0.0.1","port":8080,"details":"BAD_USER_AGENT -> STEALTH_PROBE"}
+{"timestamp":"2026-10-23 16:16:56","event":"TARPIT","ip":"127.0.0.1","port":8080,"details":"Engaged"}
+{"timestamp":"2026-10-23 16:16:56","event":"REHIT_BLACKLIST","ip":"127.0.0.1","port":8080,"details":"Blocked immediately"}
+{"timestamp":"2026-10-23 16:34:27","event":"AI_TARPIT","ip":"127.0.0.1","port":8080,"details":"BAD_USER_AGENT -> STEALTH_PROBE"}
+{"timestamp":"2026-10-23 16:34:27","event":"TARPIT","ip":"127.0.0.1","port":8080,"details":"Engaged"}
+{"timestamp":"2026-10-23 16:38:05","event":"AI_TARPIT","ip":"127.0.0.1","port":8080,"details":"BAD_USER_AGENT -> STEALTH_PROBE"}
+{"timestamp":"2026-10-23 16:38:05","event":"TARPIT","ip":"127.0.0.1","port":8080,"details":"Engaged"}
