@@ -3,22 +3,46 @@ name: StealthDefense Audit
 on:
   push:
     branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
 
 jobs:
   audit:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v5
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v5
       with:
         java-version: '17'
         distribution: 'temurin'
+
     - name: Compile Root (v2.x)
       run: |
+        echo "Compiling v2.x (root)..."
         mkdir -p build
         javac -d build $(find . -maxdepth 1 -name "*.java")
+        echo "v2.x compiled."
+
     - name: Compile v3.0 (SanderUltimate)
       run: |
+        echo "Compiling v3.0-ultimate..."
         mkdir -p v3.0-ultimate/build
-        javac -cp "v3.0-ultimate/lib/*" -d v3.0-ultimate/build $(find v3.0-ultimate -name "*.java")
+        if [ -f "v3.0-ultimate/lib/SanderCoreLib.jar" ]; then
+            javac -cp "v3.0-ultimate/lib/SanderCoreLib.jar" -d v3.0-ultimate/build $(find v3.0-ultimate -name "*.java")
+        else
+            mkdir -p v3.0-ultimate/lib
+            wget -q https://github.com/aleksandergrambelik-png/SanderCoreLib/raw/main/SanderCoreLib.jar -O v3.0-ultimate/lib/SanderCoreLib.jar
+            javac -cp "v3.0-ultimate/lib/SanderCoreLib.jar" -d v3.0-ultimate/build $(find v3.0-ultimate -name "*.java")
+        fi
+        echo "v3.0-ultimate compiled."
+
+    - name: Verify Compilation
+      run: |
+        echo "Checking compiled classes..."
+        find build -name "*.class" | head -n 5
+        find v3.0-ultimate/build -name "*.class" | head -n 5
         echo "Compilation verified."
