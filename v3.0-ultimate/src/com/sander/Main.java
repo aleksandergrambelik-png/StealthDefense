@@ -11,7 +11,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         
         while (true) {
-            System.out.print("\033[2J\033[H");
+            System.out.print("\033[2J\033[H"); // Clear screen
             System.out.println("\033[1;36m=== SANDER CORE v1.3: CYBERPUNK HUD ===\033[0m");
             System.out.println("  SANDER ULTIMATE - HYBRID ARSENAL");
             System.out.println("==========================================");
@@ -35,9 +35,20 @@ public class Main {
             } else if (choice.equals("1")) {
                 System.out.println("\033[1;33m[!] StealthDefense v3.0 engine is loading...\033[0m");
                 try {
-                    Class.forName("com.sander.modules.StealthDefenseAI").getMethod("start").invoke(null);
+                    // Jalanin StealthDefense di thread terpisah biar menu gak nge-hang
+                    new Thread(() -> {
+                        try {
+                            Class.forName("com.sander.modules.StealthDefenseAI").getMethod("start").invoke(null);
+                        } catch (Exception e) {
+                            System.out.println("\033[1;31m[!] StealthDefenseAI failed: " + e.getMessage() + "\033[0m");
+                        }
+                    }).start();
+                    
+                    System.out.println("\033[1;32m[+] StealthDefense is running in background.\033[0m");
+                    System.out.println("\033[1;33m[!] Press Enter to return to menu (engine will keep running).\033[0m");
+                    scanner.nextLine();
                 } catch (Exception e) {
-                    System.out.println("\033[1;31m[!] StealthDefenseAI not found or failed.\033[0m");
+                    System.out.println("\033[1;31m[!] Failed to load StealthDefenseAI.\033[0m");
                 }
             } else {
                 System.out.println("\033[1;31m[!] Invalid choice.\033[0m");

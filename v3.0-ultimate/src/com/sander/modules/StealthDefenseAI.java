@@ -61,7 +61,7 @@ public class StealthDefenseAI {
             while (true) {
                 try {
                     Thread.sleep(3000);
-                    System.out.print("\r[STAT] Conn:" + cConn.get() + 
+                    System.out.println("\n[STAT] Conn:" + cConn.get() + 
                                      " | Tarpit:" + cTarpit.get() + 
                                      " | Threat:" + cThreat.get() + 
                                      " | Bot:" + cBot.get() + 
